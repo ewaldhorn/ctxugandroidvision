@@ -106,7 +106,7 @@ namespace CTXUGVision
             mCameraSource = new CameraSource.Builder(ApplicationContext, detector)
                                             .SetFacing(IsFrontFacing ? CameraFacing.Front : CameraFacing.Back)
                                             .SetRequestedPreviewSize(640, 480)
-                                            .SetRequestedFps(15.0f)
+                                            .SetRequestedFps(10.0f)
                                             .SetAutoFocusEnabled(true)
                                             .Build();
         }
@@ -119,7 +119,7 @@ namespace CTXUGVision
                                                     .SetTrackingEnabled(true)
                                                     .SetMode(FaceDetectionMode.Accurate)
                                                     .SetProminentFaceOnly(IsFrontFacing)
-                                                    .SetMinFaceSize(IsFrontFacing ? 0.30f : 0.20f)
+                                                    .SetMinFaceSize(IsFrontFacing ? 0.30f : 0.10f)
                                                     .Build();
 
             tracker = new GraphicFaceTracker(context, mGraphicOverlay);

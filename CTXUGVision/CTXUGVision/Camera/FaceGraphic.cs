@@ -26,7 +26,7 @@ namespace CTXUGVision
         Bitmap hat;
         float x, y, xOffset, yOffset, left, top, right, bottom;
 
-        float jumpTolerance = 15.0f;
+        float jumpTolerance = 18.0f;
         float old_x = 0.0f, old_y = 0.0f, old_XOffset = 0.0f, old_YOffset = 0.0f;
 
         static int mCurrentColorIndex = 0;
@@ -36,7 +36,7 @@ namespace CTXUGVision
         Paint mFacePositionPaint;
         Paint mIdPaint;
         Paint mBoxPaint;
-
+        Context context;
         Face mFace;
         public int Id { get;set; }
 
@@ -57,6 +57,8 @@ namespace CTXUGVision
             mBoxPaint.SetStyle (Paint.Style.Stroke);
             mBoxPaint.StrokeWidth = BOX_STROKE_WIDTH;
 
+            this.context = context;
+
             hat = BitmapFactory.DecodeResource(context.Resources, Resource.Drawable.xmshat);
         }
 
@@ -70,6 +72,10 @@ namespace CTXUGVision
 
         public void ShowStabilise(Boolean status) {
             Stablise = status;
+            if (status)
+            {
+                hat = BitmapFactory.DecodeResource(context.Resources, Resource.Drawable.cartoonhat);
+            }
         }
 
         public void ToggleHat() {
