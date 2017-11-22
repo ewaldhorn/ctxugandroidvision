@@ -5,10 +5,11 @@ using Android.Gms.Vision;
 using Android.Gms.Vision.Faces;
 using System;
 using Android.Runtime;
+using Android.Content.PM;
 
 namespace CTXUGVision
 {
-    [Activity(Label = "CTXUGVision", MainLauncher = true, Icon = "@mipmap/icon")]
+    [Activity(Label = "CTXUGVision", MainLauncher = true, Icon = "@mipmap/icon", ScreenOrientation = ScreenOrientation.FullSensor)]
     public class MainActivity : Activity
     {
         int count = 1;
@@ -30,6 +31,9 @@ namespace CTXUGVision
             Button button = FindViewById<Button>(Resource.Id.myButton);
 
             button.Click += delegate { button.Text = $"{count++} clicks!"; };
+
+            button = FindViewById<Button>(Resource.Id.swapButton);
+            button.Click += delegate { Console.WriteLine("Swapsies");};
 
             mPreview = FindViewById<CameraSourcePreview>(Resource.Id.preview);
             mGraphicOverlay = FindViewById<GraphicOverlay>(Resource.Id.faceOverlay);
@@ -54,7 +58,7 @@ namespace CTXUGVision
             mCameraSource = new CameraSource.Builder(Application.Context, detector)
                 .SetRequestedPreviewSize(640, 480)
                 .SetFacing(CameraFacing.Back)
-                .SetRequestedFps(30.0f)
+                .SetRequestedFps(15.0f)
                 .Build();
         }
 

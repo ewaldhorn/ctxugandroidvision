@@ -1,11 +1,11 @@
 ﻿<Properties StartupConfiguration="{50665DF1-613E-411A-AE74-59FF8CAE04C7}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="CTXUGVision/Camera/FaceGraphic.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="CTXUGVision/MainActivity.cs">
     <Files>
-      <File FileName="CTXUGVision/MainActivity.cs" Line="5" Column="22" />
-      <File FileName="CTXUGVision/Resources/layout/Main.axml" Line="12" Column="18" />
+      <File FileName="CTXUGVision/MainActivity.cs" Line="59" Column="17" />
       <File FileName="CTXUGVision/Camera/CameraSourcePreview.cs" Line="7" Column="22" />
       <File FileName="CTXUGVision/Camera/GraphicOverlay.cs" Line="9" Column="22" />
       <File FileName="CTXUGVision/Camera/FaceGraphic.cs" Line="5" Column="22" />
+      <File FileName="CTXUGVision/Resources/values/Strings.xml" Line="5" Column="23" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
@@ -13,6 +13,6 @@
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
-  <MonoDevelop.Ide.ItemProperties.CTXUGVision PreferredExecutionTarget="Android.AndroidSix" />
+  <MonoDevelop.Ide.ItemProperties.CTXUGVision AndroidDesignerPreferredDevice="Nexus 4" PreferredExecutionTarget="Android.Vision" />
   <MultiItemStartupConfigurations />
 </Properties>
