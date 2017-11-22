@@ -6,60 +6,61 @@ using Android.Gms.Vision.Faces;
 using System;
 using Android.Runtime;
 using Android.Content.PM;
+using Android.Content;
+using Android.Util;
 
 namespace CTXUGVision
 {
     [Activity(Label = "CTXUGVision", MainLauncher = true, Icon = "@mipmap/icon", ScreenOrientation = ScreenOrientation.FullSensor)]
     public class MainActivity : Activity
     {
-        int count = 1;
+        int effect = 0;
         const string TAG = "CTXUGVision";
+
+        Boolean IsFrontFacing = true;
+
+        Context context;
 
         CameraSource mCameraSource;
         CameraSourcePreview mPreview;
         GraphicOverlay mGraphicOverlay;
+        GraphicFaceTracker tracker;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
 
-            // Set our view from the "main" layout resource
+            context = ApplicationContext;
+
             SetContentView(Resource.Layout.Main);
 
-            // Get our button from the layout resource,
-            // and attach an event to it
             Button button = FindViewById<Button>(Resource.Id.myButton);
+            button.Click += delegate { ToggleTracker(); };
 
-            button.Click += delegate { button.Text = $"{count++} clicks!"; };
-
-            button = FindViewById<Button>(Resource.Id.swapButton);
-            button.Click += delegate { Console.WriteLine("Swapsies");};
+            Button swapButton = FindViewById<Button>(Resource.Id.swapButton);
+            swapButton.Click += delegate { SwapCameras(); };
 
             mPreview = FindViewById<CameraSourcePreview>(Resource.Id.preview);
             mGraphicOverlay = FindViewById<GraphicOverlay>(Resource.Id.faceOverlay);
 
-            var detector = new FaceDetector.Builder(Application.Context).Build();
-            detector.SetProcessor(
-                new MultiProcessor.Builder(new GraphicFaceTrackerFactory(mGraphicOverlay)).Build());
+            CreateCameraSource();
+        }
 
-            if (!detector.IsOperational)
+        void SwapCameras()
+        {
+            IsFrontFacing = !IsFrontFacing;
+            RestartTracking();
+        }
+
+        void RestartTracking() {
+            if (mCameraSource != null)
             {
-                // Note: The first time that an app using face API is installed on a device, GMS will
-                // download a native library to the device in order to do detection.  Usually this
-                // completes before the app is run for the first time.  But if that download has not yet
-                // completed, then the above call will not detect any faces.
-                //
-                // isOperational() can be used to check if the required native library is currently
-                // available.  The detector will automatically become operational once the library
-                // download completes on device.
-                Android.Util.Log.Warn(TAG, "Face detector dependencies are not yet available.");
+                mCameraSource.Release();
+                mCameraSource = null;
             }
 
-            mCameraSource = new CameraSource.Builder(Application.Context, detector)
-                .SetRequestedPreviewSize(640, 480)
-                .SetFacing(CameraFacing.Back)
-                .SetRequestedFps(15.0f)
-                .Build();
+            CreateCameraSource();
+            StartCameraSource();
         }
 
         protected override void OnResume()
@@ -83,11 +84,64 @@ namespace CTXUGVision
             base.OnDestroy();
         }
 
-        /**
-* Starts or restarts the camera source, if it exists.  If the camera source doesn't exist yet
-* (e.g., because onResume was called before the camera source was created), this will be called
-* again when the camera source is created.
-*/
+        void ToggleTracker() {
+
+            if (tracker != null) {
+                effect++;
+
+                switch (effect) {
+                    case 0: tracker.ToggleInfo(true); tracker.ToggleHat(false); break;
+                    case 1: tracker.ToggleInfo(false); tracker.ToggleHat(true); break;
+                    case 2: tracker.Stabilise(true); break;
+                    default: effect = -1; tracker.Stabilise(false); break;
+                }
+            }
+        }
+
+
+        void CreateCameraSource()
+        {
+            FaceDetector detector = CreateFaceDetector(ApplicationContext);
+
+            mCameraSource = new CameraSource.Builder(ApplicationContext, detector)
+                                            .SetFacing(IsFrontFacing ? CameraFacing.Front : CameraFacing.Back)
+                                            .SetRequestedPreviewSize(640, 480)
+                                            .SetRequestedFps(15.0f)
+                                            .SetAutoFocusEnabled(true)
+                                            .Build();
+        }
+
+        FaceDetector CreateFaceDetector(Context context)
+        {
+            FaceDetector detector = new FaceDetector.Builder(context)
+                                                    .SetLandmarkType(LandmarkDetectionType.All)
+                                                    .SetClassificationType(ClassificationType.All)
+                                                    .SetTrackingEnabled(true)
+                                                    .SetMode(FaceDetectionMode.Accurate)
+                                                    .SetProminentFaceOnly(IsFrontFacing)
+                                                    .SetMinFaceSize(IsFrontFacing ? 0.30f : 0.20f)
+                                                    .Build();
+
+            tracker = new GraphicFaceTracker(context, mGraphicOverlay);
+            var processor = new LargestFaceFocusingProcessor.Builder(detector, tracker).Build();
+            detector.SetProcessor(processor);
+
+            if (!detector.IsOperational)
+            {
+                Log.Warn(TAG, "Face detector dependencies are not yet available.");
+
+                IntentFilter lowStorageFilter = new IntentFilter(Intent.ActionDeviceStorageLow);
+                Boolean hasLowStorage = RegisterReceiver(null, lowStorageFilter) != null;
+
+                if (hasLowStorage)
+                {
+                    Toast.MakeText(this, Resource.String.low_storage_error, ToastLength.Long).Show();
+                    Log.Warn(TAG, GetString(Resource.String.low_storage_error));
+                }
+            }
+            return detector;
+        }
+
         void StartCameraSource()
         {
             try
@@ -96,84 +150,55 @@ namespace CTXUGVision
             }
             catch (Exception e)
             {
-                Android.Util.Log.Error(TAG, "Unable to start camera source.", e);
+                Log.Error(TAG, "Unable to start camera source.", e);
                 mCameraSource.Release();
                 mCameraSource = null;
             }
         }
 
-        //==============================================================================================
-        // Graphic Face Tracker
-        //==============================================================================================
-
-        /**
-     * Factory for creating a face tracker to be associated with a new face.  The multiprocessor
-     * uses this factory to create face trackers as needed -- one for each individual.
-     */
-        class GraphicFaceTrackerFactory : Java.Lang.Object, MultiProcessor.IFactory
-        {
-            public GraphicFaceTrackerFactory(GraphicOverlay overlay) : base()
-            {
-                Overlay = overlay;
-            }
-
-            public GraphicOverlay Overlay { get; private set; }
-
-            public Android.Gms.Vision.Tracker Create(Java.Lang.Object item)
-            {
-                return new GraphicFaceTracker(Overlay);
-            }
-        }
-
-        /**
-     * Face tracker for each detected individual. This maintains a face graphic within the app's
-     * associated face overlay.
-     */
         class GraphicFaceTracker : Tracker
         {
             GraphicOverlay mOverlay;
             FaceGraphic mFaceGraphic;
 
-            public GraphicFaceTracker(GraphicOverlay overlay)
+            public GraphicFaceTracker(Context context, GraphicOverlay overlay)
             {
                 mOverlay = overlay;
-                mFaceGraphic = new FaceGraphic(overlay);
+                mFaceGraphic = new FaceGraphic(context, overlay);
             }
 
-            /**
-            * Start tracking the detected face instance within the face overlay.
-            */
             public override void OnNewItem(int idValue, Java.Lang.Object item)
             {
                 mFaceGraphic.Id = idValue;
             }
 
-            /**
-            * Update the position/characteristics of the face within the overlay.
-            */
             public override void OnUpdate(Detector.Detections detections, Java.Lang.Object item)
             {
                 mOverlay.Add(mFaceGraphic);
                 mFaceGraphic.UpdateFace(item.JavaCast<Face>());
             }
 
-            /**
-            * Hide the graphic when the corresponding face was not detected.  This can happen for
-            * intermediate frames temporarily (e.g., if the face was momentarily blocked from
-            * view).
-            */
             public override void OnMissing(Detector.Detections detections)
             {
                 mOverlay.Remove(mFaceGraphic);
             }
 
-            /**
-            * Called when the face is assumed to be gone for good. Remove the graphic annotation from
-            * the overlay.
-            */
             public override void OnDone()
             {
                 mOverlay.Remove(mFaceGraphic);
+            }
+
+            // This is a hack for the demo...
+            public void ToggleInfo(Boolean status) {
+                mFaceGraphic.ShowFaceInfo(status);
+            }
+
+            public void ToggleHat(Boolean status) {
+                mFaceGraphic.ShowMyHat(status);
+            }
+
+            public void Stabilise(Boolean status) {
+                mFaceGraphic.ShowStabilise(status);
             }
         }
     }

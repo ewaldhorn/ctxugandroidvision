@@ -96,6 +96,9 @@
     <AndroidResource Include="Resources\mipmap-xhdpi\Icon.png" />
     <AndroidResource Include="Resources\mipmap-xxhdpi\Icon.png" />
     <AndroidResource Include="Resources\mipmap-xxxhdpi\Icon.png" />
+    <AndroidResource Include="Resources\drawable\cartoonhat.png" />
+    <AndroidResource Include="Resources\drawable\hat.png" />
+    <AndroidResource Include="Resources\drawable\xmshat.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\drawable\" />

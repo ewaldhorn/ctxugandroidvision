@@ -150,7 +150,7 @@ namespace CTXUGVision
             try {
                 StartIfReady ();
             } catch (Exception ex) {
-                Android.Util.Log.Error (TAG, "Could not start camera source.", ex);
+                Log.Error (TAG, "Could not start camera source.", ex);
             }
         }
 
@@ -162,7 +162,7 @@ namespace CTXUGVision
             if (orientation == Android.Content.Res.Orientation.Portrait)
                 return true;
 
-            Android.Util.Log.Debug (TAG, "isPortraitMode returning false by default");
+            Log.Debug (TAG, "isPortraitMode returning false by default");
             return false;
         }
     }
